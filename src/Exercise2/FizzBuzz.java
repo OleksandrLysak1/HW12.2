@@ -6,7 +6,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 class FizzBuzz {
     private int n;
     private int current = 1;
-    private BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Integer> numQueue = new LinkedBlockingQueue<>();
 
     public FizzBuzz(int n) {
         this.n = n;
@@ -14,48 +15,52 @@ class FizzBuzz {
 
     public synchronized void fizz() throws InterruptedException {
         while (current <= n) {
-            if (current % 3 == 0 && current % 5 != 0) {
+            while (current <= n && (current % 3 != 0 || current % 5 == 0)) {
+                wait();
+            }
+            if (current <= n) {
                 queue.put("fizz");
                 current++;
                 notifyAll();
-            } else {
-                wait();
             }
         }
     }
 
     public synchronized void buzz() throws InterruptedException {
         while (current <= n) {
-            if (current % 5 == 0 && current % 3 != 0) {
+            while (current <= n && (current % 5 != 0 || current % 3 == 0)) {
+                wait();
+            }
+            if (current <= n) {
                 queue.put("buzz");
                 current++;
                 notifyAll();
-            } else {
-                wait();
             }
         }
     }
 
     public synchronized void fizzbuzz() throws InterruptedException {
         while (current <= n) {
-            if (current % 15 == 0) {
+            while (current <= n && current % 15 != 0) {
+                wait();
+            }
+            if (current <= n) {
                 queue.put("fizzbuzz");
                 current++;
                 notifyAll();
-            } else {
-                wait();
             }
         }
     }
 
     public synchronized void number() throws InterruptedException {
         while (current <= n) {
-            if (current % 3 != 0 && current % 5 != 0) {
+            while (current <= n && (current % 3 == 0 || current % 5 == 0)) {
+                wait();
+            }
+            if (current <= n) {
                 queue.put(String.valueOf(current));
                 current++;
                 notifyAll();
-            } else {
-                wait();
             }
         }
     }
@@ -104,16 +109,24 @@ class Main {
             }
         });
 
+        Thread printThread = new Thread(() -> {
+            try {
+                fizzBuzz.print();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
         threadA.start();
         threadB.start();
         threadC.start();
         threadD.start();
+        printThread.start();
 
         threadA.join();
         threadB.join();
         threadC.join();
         threadD.join();
-
-        fizzBuzz.print();
+        printThread.join();
     }
 }
