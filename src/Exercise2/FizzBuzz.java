@@ -4,10 +4,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class FizzBuzz {
-    private int n;
+    private final int n;
     private int current = 1;
     private final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<Integer> numQueue = new LinkedBlockingQueue<>();
 
     public FizzBuzz(int n) {
         this.n = n;
@@ -15,60 +14,64 @@ class FizzBuzz {
 
     public synchronized void fizz() throws InterruptedException {
         while (current <= n) {
-            while (current <= n && (current % 3 != 0 || current % 5 == 0)) {
-                wait();
-            }
-            if (current <= n) {
+            if (current % 3 == 0 && current % 5 != 0) {
                 queue.put("fizz");
                 current++;
                 notifyAll();
+            } else {
+                wait();
             }
         }
     }
 
     public synchronized void buzz() throws InterruptedException {
         while (current <= n) {
-            while (current <= n && (current % 5 != 0 || current % 3 == 0)) {
-                wait();
-            }
-            if (current <= n) {
+            if (current % 5 == 0 && current % 3 != 0) {
                 queue.put("buzz");
                 current++;
                 notifyAll();
+            } else {
+                wait();
             }
         }
     }
 
     public synchronized void fizzbuzz() throws InterruptedException {
         while (current <= n) {
-            while (current <= n && current % 15 != 0) {
-                wait();
-            }
-            if (current <= n) {
+            if (current % 15 == 0) {
                 queue.put("fizzbuzz");
                 current++;
                 notifyAll();
+            } else {
+                wait();
             }
         }
     }
 
     public synchronized void number() throws InterruptedException {
         while (current <= n) {
-            while (current <= n && (current % 3 == 0 || current % 5 == 0)) {
-                wait();
-            }
-            if (current <= n) {
+            if (current % 3 != 0 && current % 5 != 0) {
                 queue.put(String.valueOf(current));
                 current++;
                 notifyAll();
+            } else {
+                wait();
             }
         }
     }
 
     public void print() throws InterruptedException {
-        for (int i = 1; i <= n; i++) {
-            System.out.println(queue.take());
+        while (true) {
+            String value = queue.take();
+            if (value.equals("END")) {
+                break;
+            }
+            System.out.println(value);
         }
+    }
+
+    public void addEndMarker() throws InterruptedException {
+        queue.put("END");
     }
 }
 
@@ -127,6 +130,8 @@ class Main {
         threadB.join();
         threadC.join();
         threadD.join();
+
+        fizzBuzz.addEndMarker();
         printThread.join();
     }
 }

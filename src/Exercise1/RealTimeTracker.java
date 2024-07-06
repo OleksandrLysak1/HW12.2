@@ -3,45 +3,34 @@ package Exercise1;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class RealTimeTracker {
+    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+    private static volatile boolean isMyThread1Started = false;
+
     public static void main(String[] args) {
-        MyThread myThread1 = new MyThread(1, 1000);
-        myThread1.start();
 
-        MyThread myThread2 = new MyThread(2, 5000);
-        myThread2.start();
+        executor.scheduleAtFixedRate(new TimePrinter(1), 0, 1, TimeUnit.SECONDS);
+
+        executor.scheduleWithFixedDelay(new FiveSecondNotifier(2), 5, 5, TimeUnit.SECONDS);
+    }
+
+    public static void notifyMyThread1Started() {
+        isMyThread1Started = true;
     }
 }
 
-class MyThread extends Thread {
-    private final int threadId;
-    private final int interval;
-
-    public MyThread(int threadId, int interval) {
-        this.threadId = threadId;
-        this.interval = interval;
-    }
-
-    public void run() {
-        Timer timer = new Timer();
-        if (interval == 1000) {
-            timer.scheduleAtFixedRate(new TimePrinter(threadId), 0, interval);
-        } else if (interval == 5000) {
-            timer.scheduleAtFixedRate(new FiveSecondNotifier(threadId), 0, interval);
-        }
-    }
-}
-
-class TimePrinter extends TimerTask {
+class TimePrinter implements Runnable {
     private final LocalDateTime startTime;
     private final int threadId;
 
     public TimePrinter(int threadId) {
         this.startTime = LocalDateTime.now();
         this.threadId = threadId;
+        RealTimeTracker.notifyMyThread1Started();
     }
 
     @Override
@@ -54,7 +43,7 @@ class TimePrinter extends TimerTask {
     }
 }
 
-class FiveSecondNotifier extends TimerTask {
+class FiveSecondNotifier implements Runnable {
     private final int threadId;
 
     public FiveSecondNotifier(int threadId) {
