@@ -10,54 +10,52 @@ class FizzBuzz {
 
     public synchronized void fizz() throws InterruptedException {
         while (current <= n) {
-            if (current % 3 == 0 && current % 5 != 0) {
-                System.out.println("fizz");
-                current++;
-                notifyAll();
-            } else {
+            while (current % 3 != 0 || current % 5 == 0) {
                 wait();
             }
+            if (current > n) break;
+            System.out.println("fizz");
+            current++;
+            notifyAll();
         }
     }
 
     public synchronized void buzz() throws InterruptedException {
         while (current <= n) {
-            if (current % 5 == 0 && current % 3 != 0) {
-                System.out.println("buzz");
-                current++;
-                notifyAll();
-            } else {
+            while (current % 5 != 0 || current % 3 == 0) {
                 wait();
             }
+            if (current > n) break;
+            System.out.println("buzz");
+            current++;
+            notifyAll();
         }
     }
 
     public synchronized void fizzbuzz() throws InterruptedException {
         while (current <= n) {
-            if (current % 15 == 0) {
-                System.out.println("fizzbuzz");
-                current++;
-                notifyAll();
-            } else {
+            while (current % 15 != 0) {
                 wait();
             }
+            if (current > n) break;
+            System.out.println("fizzbuzz");
+            current++;
+            notifyAll();
         }
     }
 
     public synchronized void number() throws InterruptedException {
         while (current <= n) {
-            if (current % 3 != 0 && current % 5 != 0) {
-                System.out.println(current);
-                current++;
-                notifyAll();
-            } else {
+            while (current % 3 == 0 || current % 5 == 0) {
                 wait();
             }
+            if (current > n) break;
+            System.out.println(current);
+            current++;
+            notifyAll();
         }
     }
-}
 
-class Main {
     public static void main(String[] args) throws InterruptedException {
         int n = 15;
         FizzBuzz fizzBuzz = new FizzBuzz(n);
